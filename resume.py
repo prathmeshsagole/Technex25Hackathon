@@ -9,6 +9,7 @@ import re
 import base64
 import io
 from textblob import Word
+from textblob import TextBlob
 
 # Download NLTK stopwords (for removing common words)
 nltk.download('stopwords')
@@ -43,9 +44,8 @@ def analyze_resume(text):
         "front-end", "visual design", "user interface", "product management", "strategy",
         "business analysis", "leadership", "software development", "technical expertise",
         "data analysis", "data visualization", "statistics", "analytics", "research",
-        "artificial intelligence", "big data", "cloud technologies", "data pipelines "
-        ]
-
+        "artificial intelligence", "big data", "cloud technologies", "data pipelines"
+    ]
     skill_counts = {skill: filtered_words.count(skill) for skill in skills_list if skill in filtered_words}
 
     # Rank skills by count
@@ -71,25 +71,26 @@ def suggest_job_positions(skills):
     job_positions = {
         "Data Scientist": ["python", "machine learning", "data science", "tensorflow", "analytics", "statistics"],
         "Machine Learning Engineer": ["python", "machine learning", "tensorflow", "data science", "algorithm design"],
-        "Software Developer": ["python", "java", "c++", "html", "css", "javascript", "software development","mongodb","php"],
+        "Software Developer": ["python", "java", "c++", "html", "css", "javascript", "software development", "mongodb", "php"],
         "Web Developer": ["html", "css", "javascript", "python", "web development", "frontend", "backend"],
         "AI Researcher": ["python", "machine learning", "data science", "tensorflow", "research", "artificial intelligence"],
-        "Data Analyst": ["python", "data science", "sql", "machine learning", "data visualization", "statistics","excel","powerbi","tableau"],
+        "Data Analyst": ["python", "data science", "sql", "machine learning", "data visualization", "statistics", "excel", "powerbi", "tableau"],
         "Project Manager": ["management", "team leadership", "communication", "project planning", "problem solving"],
         "Product Manager": ["product management", "leadership", "strategy", "communication", "project management"],
         "Business Analyst": ["business analysis", "data analysis", "communication", "problem solving", "project management"],
         "Technical Lead": ["leadership", "project management", "software development", "communication", "technical expertise"],
         "Data Engineer": ["python", "data science", "sql", "big data", "cloud technologies", "data pipelines"],
         "UX/UI Designer": ["design", "user experience", "front-end", "visual design", "user interface"],
-        "Project Manager": ["management", "team leadership", "communication", "project planning", "problem solving","Excel"],
-        "Operations Manager": ["operations", "management", "team leadership", "communication", "problem solving","research"],
-        "Database Manager": ["sql", "database management", "data analysis", "communication", "problem solving","mongodb"],
-        "Entrepreneur": ["leadership", "strategy", "communication", "problem solving", "innovation","finance","business"],
+        "Operations Manager": ["operations", "management", "team leadership", "communication", "problem solving", "research"],
+        "Database Manager": ["sql", "database management", "data analysis", "communication", "problem solving", "mongodb"],
+        "Entrepreneur": ["leadership", "strategy", "communication", "problem solving", "innovation", "finance", "business"]
     }
 
     suitable_jobs = []
+    threshold = 0.5  # Adjust the threshold as needed
     for job, required_skills in job_positions.items():
-        if all(skill in skills for skill in required_skills):
+        matching_skills = [skill for skill in required_skills if skill in skills]
+        if len(matching_skills) / len(required_skills) >= threshold:
             suitable_jobs.append(job)
 
     return suitable_jobs
@@ -113,6 +114,9 @@ def display_resume(uploaded_file):
 # Streamlit UI
 st.title("AI-Based Resume Analyzer")
 st.write("Upload a resume (PDF or DOCX) to analyze the candidate's skills and experience.")
+
+# Sidebar for user selection
+user_type = st.sidebar.selectbox("Select User Type", ["Personal Resume Analyzer", "Business Resume Analyzer"])
 
 uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx"])
 
@@ -172,17 +176,24 @@ if uploaded_file:
     else:
         st.write("No personal information found.")
 
-    # Display keyword highlighting
-    st.subheader("Keyword Highlighting")
-    keywords = ["python", "java", "c++", "html", "css", "javascript", "sql", "machine learning", "data science", "tensorflow"]
-    highlighted_text = resume_text
-    for keyword in keywords:
-        highlighted_text = re.sub(r'\b' + re.escape(keyword) + r'\b', f"**{keyword}**", highlighted_text, flags=re.IGNORECASE)
-    st.markdown(highlighted_text)
+    # # Display keyword highlighting
+    # st.subheader("Keyword Highlighting")
+    # keywords = [
+    #     "python", "java", "c++", "html", "css", "javascript", "sql", "machine learning",
+    #     "data science", "tensorflow", "excel", "operations", "team leadership", "management",
+    #     "communication", "project planning", "problem solving", "design", "user experience",
+    #     "front-end", "visual design", "user interface", "product management", "strategy",
+    #     "business analysis", "leadership", "software development", "technical expertise",
+    #     "data analysis", "data visualization", "statistics", "analytics", "research",
+    #     "artificial intelligence", "big data", "cloud technologies", "data pipelines"
+    # ]
+    # highlighted_text = resume_text
+    # for keyword in keywords:
+    #     highlighted_text = re.sub(r'\b' + re.escape(keyword) + r'\b', f"**{keyword}**", highlighted_text, flags=re.IGNORECASE)
+    # st.markdown(highlighted_text)
 
     # Display sentiment analysis
     st.subheader("Sentiment Analysis")
-    from textblob import TextBlob
     analysis = TextBlob(resume_text)
     sentiment = analysis.sentiment
     st.write(f"Polarity: {sentiment.polarity}, Subjectivity: {sentiment.subjectivity}")
@@ -226,18 +237,11 @@ if uploaded_file:
     else:
         st.write("No experience timeline found.")
 
-    # # Feedback and Recommendations Section
-    # st.subheader("Feedback and Recommendations")
-    # st.write("Here are some personalized feedback and recommendations to improve your resume:")
-    # st.write("- Ensure your resume is tailored to the job description.")
-    # st.write("- Highlight your key achievements and responsibilities.")
-    # st.write("- Use action verbs to start your bullet points.")
-    # st.write("- Keep your resume concise and to the point.")
-
-    # # Resume Formatting Section
-    # st.subheader("Resume Formatting")
-    # st.write("Here are some tips to standardize the format of your resume:")
-    # st.write("- Use a clear and professional font.")
-    # st.write("- Ensure consistent formatting throughout the resume.")
-    # st.write("- Use bullet points for easy readability.")
-    # st.write("- Include relevant sections such as Summary, Experience, Education, and Skills.")
+        # Add business-specific analysis and insights here
+   
+        st.subheader("Personalized Feedback")
+        st.write("Here are some personalized feedback and recommendations to improve your resume:")
+        st.write("- Ensure your resume is tailored to the job description.")
+        st.write("- Highlight your key achievements and responsibilities.")
+        st.write("- Use action verbs to start your bullet points.")
+        st.write("- Keep your resume concise and to the point.")
