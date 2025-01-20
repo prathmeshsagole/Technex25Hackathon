@@ -10,10 +10,20 @@ import base64
 import io
 from textblob import Word
 from textblob import TextBlob
+import spacy
 
 # Download NLTK stopwords (for removing common words)
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
+
+# Download spaCy model for NER
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    st.write("Downloading spaCy model 'en_core_web_sm'...")
+    from spacy.cli import download
+    download("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
 # Function to extract text from a PDF
 def extract_text_from_pdf(pdf_file):
@@ -111,6 +121,60 @@ def display_resume(uploaded_file):
             text += para.text + "\n"
         st.text_area("Uploaded Resume", text, height=300)
 
+# Function to extract personal information using spaCy
+def extract_personal_info(text):
+    personal_info = {}
+    doc = nlp(text)
+
+    # Extract name
+    for ent in doc.ents:
+        if ent.label_ == "PERSON":
+            personal_info['Name'] = ent.text.strip()
+            break
+
+    # Extract email
+    email_pattern = r'([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)'
+    email_match = re.search(email_pattern, text)
+    if email_match:
+        personal_info['Email'] = email_match.group(1).strip()
+
+    # Extract phone number
+    phone_pattern = r'(\+?\d[\d\s-]{7,}\d)'
+    phone_match = re.search(phone_pattern, text)
+    if phone_match:
+        personal_info['Phone'] = phone_match.group(1).strip()
+
+    return personal_info
+
+def perform_swot_analysis(text):
+    swot_analysis = {
+        "Strengths": [],
+        "Weaknesses": [],
+        "Opportunities": [],
+        "Threats": []
+    }
+
+    # Keywords for SWOT analysis
+    strengths_keywords = ["experience", "expertise", "skills", "achievements", "strengths", "leadership", "knowledge"]
+    weaknesses_keywords = ["weaknesses", "improve", "develop", "lack", "limited"]
+    opportunities_keywords = ["opportunities", "growth", "potential", "future", "expand"]
+    threats_keywords = ["challenges", "threats", "competition", "risk", "obstacles"]
+
+    # Extract sentences containing SWOT keywords
+    for sentence in text.split("."):
+        sentence = sentence.strip()
+        if any(keyword in sentence.lower() for keyword in strengths_keywords):
+            swot_analysis["Strengths"].append(sentence)
+        if any(keyword in sentence.lower() for keyword in weaknesses_keywords):
+            swot_analysis["Weaknesses"].append(sentence)
+        if any(keyword in sentence.lower() for keyword in opportunities_keywords):
+            swot_analysis["Opportunities"].append(sentence)
+        if any(keyword in sentence.lower() for keyword in threats_keywords):
+            swot_analysis["Threats"].append(sentence)
+
+    return swot_analysis
+
+
 # Streamlit UI
 st.title("AI-Based Resume Analyzer")
 st.write("Upload a resume (PDF or DOCX) to analyze the candidate's skills and experience.")
@@ -167,30 +231,14 @@ if uploaded_file:
     else:
         st.write("No educational details found.")
 
-    # Display personal information (basic extraction)
+    # Display personal information
     st.subheader("Personal Information")
-    personal_info = re.findall(r'(Name|Email|Phone):\s*(.*)', resume_text)
+    personal_info = extract_personal_info(resume_text)
     if personal_info:
-        for info in personal_info:
-            st.write(f"{info[0]}: {info[1]}")
+        for key, value in personal_info.items():
+            st.write(f"{key}: {value}")
     else:
         st.write("No personal information found.")
-
-    # # Display keyword highlighting
-    # st.subheader("Keyword Highlighting")
-    # keywords = [
-    #     "python", "java", "c++", "html", "css", "javascript", "sql", "machine learning",
-    #     "data science", "tensorflow", "excel", "operations", "team leadership", "management",
-    #     "communication", "project planning", "problem solving", "design", "user experience",
-    #     "front-end", "visual design", "user interface", "product management", "strategy",
-    #     "business analysis", "leadership", "software development", "technical expertise",
-    #     "data analysis", "data visualization", "statistics", "analytics", "research",
-    #     "artificial intelligence", "big data", "cloud technologies", "data pipelines"
-    # ]
-    # highlighted_text = resume_text
-    # for keyword in keywords:
-    #     highlighted_text = re.sub(r'\b' + re.escape(keyword) + r'\b', f"**{keyword}**", highlighted_text, flags=re.IGNORECASE)
-    # st.markdown(highlighted_text)
 
     # Display sentiment analysis
     st.subheader("Sentiment Analysis")
@@ -217,6 +265,16 @@ if uploaded_file:
     for trait, found in traits_found.items():
         st.write(f"{trait}: {'Found' if found else 'Not Found'}")
 
+    st.subheader("SWOT Analysis")
+    swot_analysis = perform_swot_analysis(resume_text)
+    for category, items in swot_analysis.items():
+        st.write(f"**{category}:**")
+        if items:
+            for item in items:
+                st.write(f"- {item}")
+        else:
+            st.write("No information found.")
+
     # Visualization Dashboard
     st.subheader("Visualization Dashboard")
     st.write("This section provides a visual overview of the resume analysis.")
@@ -237,11 +295,14 @@ if uploaded_file:
     else:
         st.write("No experience timeline found.")
 
-        # Add business-specific analysis and insights here
-   
-        st.subheader("Personalized Feedback")
-        st.write("Here are some personalized feedback and recommendations to improve your resume:")
-        st.write("- Ensure your resume is tailored to the job description.")
-        st.write("- Highlight your key achievements and responsibilities.")
-        st.write("- Use action verbs to start your bullet points.")
-        st.write("- Keep your resume concise and to the point.")
+    # # Additional content based on user type
+    # if user_type == "Business Resume Analyzer":
+    #     st.subheader("Business-Specific Analysis")
+    #     st.write("This section provides additional insights tailored for business purposes.")
+    #     # Add business-specific analysis and insights here
+    # elif user_type == "Personal Resume Analyzer":
+    #     st.write("Here are some personalized feedback and recommendations to improve your resume:")
+    #     st.write("- Ensure your resume is tailored to the job description.")
+    #     st.write("- Highlight your key achievements and responsibilities.")
+    #     st.write("- Use action verbs to start your bullet points.")
+    #     st.write("- Keep your resume concise and to the point.")
