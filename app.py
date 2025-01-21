@@ -9,14 +9,14 @@ from nltk.corpus import stopwords
 import re
 import base64
 import io
-from textblob import Word
+from textblob import Word, TextBlob
 from transformers import pipeline
 
 # Download NLTK stopwords (for removing common words)
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
-nltk.download('punkt') 
+nltk.download('punkt')
 
 # Function to extract text from a PDF
 def extract_text_from_pdf(pdf_file):
@@ -124,8 +124,6 @@ def load_nlp_model():
         device="cpu"
     )
 
-        
-
 def perform_swot_analysis(text):
     """
     Perform SWOT analysis on resume text
@@ -137,48 +135,47 @@ def perform_swot_analysis(text):
         'Opportunities': [],
         'Threats': []
     }
-    
+
     try:
-        # Identify strengths
-        skill_indicators = [
-            r'proficient in',
-            r'expertise in',
-            r'years? experience',
-            r'successfully',
-            r'achieved',
-            r'led',
-            r'managed',
-            r'developed'
-        ]
-        
-        # Extract sentences
         sentences = sent_tokenize(text)
-        
-        # Analyze each sentence
-        for sentence in sentences:
-            # Check for strengths
-            if any(re.search(pattern, sentence.lower()) for pattern in skill_indicators):
-                sections['Strengths'].append(sentence.strip())
-            
-            # Check for opportunities
-            if any(keyword in sentence.lower() for keyword in ['goals', 'aim', 'aspire', 'seeking', 'interested in']):
-                sections['Opportunities'].append(sentence.strip())
-            
-            # Check for potential weaknesses
-            if any(keyword in sentence.lower() for keyword in ['basic knowledge', 'familiar with', 'learning']):
-                sections['Weaknesses'].append(sentence.strip())
-        
-        # Add standard threats if none found
-        sections['Threats'] = [
-            "Rapidly evolving technology landscape requiring continuous learning",
-            "Competitive job market with increasing skill requirements",
-            "Need to stay updated with industry trends"
-        ]
-        
-        return sections
     except Exception as e:
-        st.error(f"Error in SWOT analysis: {str(e)}")
-        return None
+        # Fallback to basic sentence splitting
+        sentences = [s.strip() for s in text.split('.') if s.strip()]
+
+    # Identify strengths
+    skill_indicators = [
+        r'proficient in',
+        r'expertise in',
+        r'years? experience',
+        r'successfully',
+        r'achieved',
+        r'led',
+        r'managed',
+        r'developed'
+    ]
+
+    # Analyze each sentence
+    for sentence in sentences:
+        # Check for strengths
+        if any(re.search(pattern, sentence.lower()) for pattern in skill_indicators):
+            sections['Strengths'].append(sentence.strip())
+
+        # Check for opportunities
+        if any(keyword in sentence.lower() for keyword in ['goals', 'aim', 'aspire', 'seeking', 'interested in']):
+            sections['Opportunities'].append(sentence.strip())
+
+        # Check for potential weaknesses
+        if any(keyword in sentence.lower() for keyword in ['basic knowledge', 'familiar with', 'learning']):
+            sections['Weaknesses'].append(sentence.strip())
+
+    # Add standard threats if none found
+    sections['Threats'] = [
+        "Rapidly evolving technology landscape requiring continuous learning",
+        "Competitive job market with increasing skill requirements",
+        "Need to stay updated with industry trends"
+    ]
+
+    return sections
 
 def display_swot_analysis(sections):
     """
@@ -187,44 +184,44 @@ def display_swot_analysis(sections):
     if not sections:
         st.error("Unable to generate SWOT analysis")
         return
-    
+
     st.subheader("SWOT Analysis")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         # Strengths (Green)
         st.markdown("### 💪 Strengths")
         with st.container():
-            st.markdown("""<div style='background-color: #e6ffe6; padding: 15px; border-radius: 5px;'>""", 
+            st.markdown("""<div style='background-color: #e6ffe6; padding: 15px; border-radius: 5px;'>""",
                       unsafe_allow_html=True)
             for strength in sections['Strengths']:
                 st.markdown(f"• {strength}")
             st.markdown("</div>", unsafe_allow_html=True)
-        
+
         # Opportunities (Blue)
         st.markdown("### 🎯 Opportunities")
         with st.container():
-            st.markdown("""<div style='background-color: #e6f3ff; padding: 15px; border-radius: 5px;'>""", 
+            st.markdown("""<div style='background-color: #e6f3ff; padding: 15px; border-radius: 5px;'>""",
                       unsafe_allow_html=True)
             for opportunity in sections['Opportunities']:
                 st.markdown(f"• {opportunity}")
             st.markdown("</div>", unsafe_allow_html=True)
-    
+
     with col2:
         # Weaknesses (Yellow)
         st.markdown("### ⚠️ Areas for Improvement")
         with st.container():
-            st.markdown("""<div style='background-color: #fff3e6; padding: 15px; border-radius: 5px;'>""", 
+            st.markdown("""<div style='background-color: #fff3e6; padding: 15px; border-radius: 5px;'>""",
                       unsafe_allow_html=True)
             for weakness in sections['Weaknesses']:
                 st.markdown(f"• {weakness}")
             st.markdown("</div>", unsafe_allow_html=True)
-        
+
         # Threats (Red)
         st.markdown("### ⚡ Challenges")
         with st.container():
-            st.markdown("""<div style='background-color: #ffe6e6; padding: 15px; border-radius: 5px;'>""", 
+            st.markdown("""<div style='background-color: #ffe6e6; padding: 15px; border-radius: 5px;'>""",
                       unsafe_allow_html=True)
             for threat in sections['Threats']:
                 st.markdown(f"• {threat}")
@@ -254,12 +251,12 @@ if uploaded_file:
     skill_names = list(skills.keys())
     skill_counts = list(skills.values())
 
-    # # Display skills graph
-    # plt.figure(figsize=(10, 6))
-    # plt.barh(skill_names, skill_counts, color='skyblue')
-    # plt.xlabel("Skill Count")
-    # plt.title("Skills Found in the Resume")
-    # st.pyplot(plt)
+    # Display skills graph
+    plt.figure(figsize=(10, 6))
+    plt.barh(skill_names, skill_counts, color='skyblue')
+    plt.xlabel("Skill Count")
+    plt.title("Skills Found in the Resume")
+    st.pyplot(plt)
 
     # Display total experience
     st.subheader("Total Experience")
@@ -307,8 +304,7 @@ if uploaded_file:
     for keyword in keywords:
         highlighted_text = re.sub(r'\b' + re.escape(keyword) + r'\b', f"*{keyword}*", highlighted_text, flags=re.IGNORECASE)
     st.markdown(highlighted_text)
-    
-    
+
     st.write("Generating SWOT Analysis...")
     with st.spinner("Analyzing resume content..."):
         swot_sections = perform_swot_analysis(resume_text)
@@ -317,7 +313,6 @@ if uploaded_file:
 
     # Display sentiment analysis
     st.subheader("Sentiment Analysis")
-    from textblob import TextBlob
     analysis = TextBlob(resume_text)
     sentiment = analysis.sentiment
     st.write(f"Polarity: {sentiment.polarity}, Subjectivity: {sentiment.subjectivity}")
