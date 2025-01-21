@@ -12,13 +12,13 @@ import io
 from textblob import Word, TextBlob
 from transformers import pipeline
 
-# Download NLTK stopwords (for removing common words)
+
 nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 
 nltk.download('punkt')
 
-# Function to extract text from a PDF
+
 def extract_text_from_pdf(pdf_file):
     pdf_reader = PdfReader(pdf_file)
     text = ""
@@ -26,7 +26,7 @@ def extract_text_from_pdf(pdf_file):
         text += page.extract_text()
     return text
 
-# Function to extract text from Word document
+
 def extract_text_from_docx(docx_file):
     doc = Document(docx_file)
     text = ""
@@ -34,12 +34,12 @@ def extract_text_from_docx(docx_file):
         text += para.text
     return text
 
-# Function to process the text and analyze skills
+
 def analyze_resume(text):
     words = re.findall(r'\b\w+\b', text.lower())
     filtered_words = [word for word in words if word not in stop_words]
 
-    # Example skills list to look for
+    
     skills_list = [
         "python", "java", "c++", "html", "css", "javascript", "sql", "machine learning",
         "data science", "tensorflow", "excel", "operations", "team leadership", "management",
@@ -51,16 +51,16 @@ def analyze_resume(text):
     ]
     skill_counts = {skill: filtered_words.count(skill) for skill in skills_list if skill in filtered_words}
 
-    # Rank skills by count
+    
     ranked_skills = {key: value for key, value in sorted(skill_counts.items(), key=lambda item: item[1], reverse=True)}
 
-    # Extract years of experience (very basic, assuming a format like "5 years")
+    
     experience = re.findall(r'(\d+)\s*(year|yrs|years)', text.lower())
     total_experience = sum(int(exp[0]) for exp in experience)
 
     return ranked_skills, total_experience
 
-# Function to extract education details (very basic pattern recognition)
+
 def extract_education_details(text):
     education_keywords = ["bachelor", "master", "degree", "university", "college", "phd", "engineering", "science"]
     education_details = []
@@ -69,7 +69,7 @@ def extract_education_details(text):
             education_details.append(line.strip())
     return education_details
 
-# Function to determine suitable job positions based on skills
+
 def suggest_job_positions(skills):
     job_positions = {
         "Data Scientist": ["python", "machine learning", "data science", "tensorflow", "analytics", "statistics"],
@@ -90,7 +90,7 @@ def suggest_job_positions(skills):
     }
 
     suitable_jobs = []
-    threshold = 0.5  # Adjust the threshold as needed
+    threshold = 0.5  
     for job, required_skills in job_positions.items():
         matching_skills = [skill for skill in required_skills if skill in skills]
         if len(matching_skills) / len(required_skills) >= threshold:
@@ -98,15 +98,15 @@ def suggest_job_positions(skills):
 
     return suitable_jobs
 
-# Function to display the resume (for PDF or DOCX files)
+
 def display_resume(uploaded_file):
     if uploaded_file.type == "application/pdf":
-        # Display PDF
+        
         pdf_data = uploaded_file.read()
         st.download_button("Download Resume", data=pdf_data, file_name="resume.pdf", mime="application/pdf")
         st.markdown(f'<embed src="data:application/pdf;base64,{base64.b64encode(pdf_data).decode()}" width="100%" height="600px" type="application/pdf">', unsafe_allow_html=True)
     elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        # Display DOCX content
+        
         docx_data = uploaded_file.read()
         doc = Document(io.BytesIO(docx_data))
         text = ""
@@ -128,7 +128,7 @@ def perform_swot_analysis(text):
     """
     Perform SWOT analysis on resume text
     """
-    # Initialize sections
+    
     sections = {
         'Strengths': [],
         'Weaknesses': [],
@@ -139,10 +139,10 @@ def perform_swot_analysis(text):
     try:
         sentences = sent_tokenize(text)
     except Exception as e:
-        # Fallback to basic sentence splitting
+        
         sentences = [s.strip() for s in text.split('.') if s.strip()]
 
-    # Identify strengths
+    
     skill_indicators = [
         r'proficient in',
         r'expertise in',
@@ -154,21 +154,21 @@ def perform_swot_analysis(text):
         r'developed'
     ]
 
-    # Analyze each sentence
+    
     for sentence in sentences:
-        # Check for strengths
+        
         if any(re.search(pattern, sentence.lower()) for pattern in skill_indicators):
             sections['Strengths'].append(sentence.strip())
 
-        # Check for opportunities
+        
         if any(keyword in sentence.lower() for keyword in ['goals', 'aim', 'aspire', 'seeking', 'interested in']):
             sections['Opportunities'].append(sentence.strip())
 
-        # Check for potential weaknesses
+        
         if any(keyword in sentence.lower() for keyword in ['basic knowledge', 'familiar with', 'learning']):
             sections['Weaknesses'].append(sentence.strip())
 
-    # Add standard threats if none found
+    
     sections['Threats'] = [
         "Rapidly evolving technology landscape requiring continuous learning",
         "Competitive job market with increasing skill requirements",
@@ -190,7 +190,7 @@ def display_swot_analysis(sections):
     col1, col2 = st.columns(2)
 
     with col1:
-        # Strengths (Green)
+        
         st.markdown("### 💪 Strengths")
         with st.container():
             st.markdown("""<div style='background-color: #e6ffe6; padding: 15px; border-radius: 5px;'>""",
@@ -199,7 +199,7 @@ def display_swot_analysis(sections):
                 st.markdown(f"• {strength}")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # Opportunities (Blue)
+        
         st.markdown("### 🎯 Opportunities")
         with st.container():
             st.markdown("""<div style='background-color: #e6f3ff; padding: 15px; border-radius: 5px;'>""",
@@ -209,7 +209,7 @@ def display_swot_analysis(sections):
             st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
-        # Weaknesses (Yellow)
+        
         st.markdown("### ⚠️ Areas for Improvement")
         with st.container():
             st.markdown("""<div style='background-color: #fff3e6; padding: 15px; border-radius: 5px;'>""",
@@ -218,7 +218,7 @@ def display_swot_analysis(sections):
                 st.markdown(f"• {weakness}")
             st.markdown("</div>", unsafe_allow_html=True)
 
-        # Threats (Red)
+        
         st.markdown("### ⚡ Challenges")
         with st.container():
             st.markdown("""<div style='background-color: #ffe6e6; padding: 15px; border-radius: 5px;'>""",
@@ -227,42 +227,35 @@ def display_swot_analysis(sections):
                 st.markdown(f"• {threat}")
             st.markdown("</div>", unsafe_allow_html=True)
 
-# Streamlit UI
+
 st.title("AI-Based Resume Analyzer")
 st.write("Upload a resume (PDF or DOCX) to analyze the candidate's skills and experience.")
 
 uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx"])
 
 if uploaded_file:
-    # Display the uploaded resume
+    
     display_resume(uploaded_file)
 
-    # Extract text based on file type
+    
     if uploaded_file.type == "application/pdf":
         resume_text = extract_text_from_pdf(uploaded_file)
     elif uploaded_file.type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         resume_text = extract_text_from_docx(uploaded_file)
 
-    # Analyze the resume
+    
     skills, experience = analyze_resume(resume_text)
 
-    # Display skills with visualization (Bar Chart)
+    
     st.subheader("Skills")
     skill_names = list(skills.keys())
     skill_counts = list(skills.values())
 
-    # Display skills graph
-    plt.figure(figsize=(10, 6))
-    plt.barh(skill_names, skill_counts, color='skyblue')
-    plt.xlabel("Skill Count")
-    plt.title("Skills Found in the Resume")
-    st.pyplot(plt)
-
-    # Display total experience
+    
     st.subheader("Total Experience")
     st.write(f"{experience} years of experience")
 
-    # Display job suggestions
+    
     st.subheader("Suggested Job Positions Based on Skills")
     job_positions = suggest_job_positions(skills)
     if job_positions:
@@ -271,7 +264,7 @@ if uploaded_file:
     else:
         st.write("No specific job suggestions found based on the resume's skills.")
 
-    # Extract and display educational details
+    
     st.subheader("Educational Details")
     education_details = extract_education_details(resume_text)
     if education_details:
@@ -280,7 +273,7 @@ if uploaded_file:
     else:
         st.write("No educational details found.")
 
-    # Display personal information (basic extraction)
+    
     st.subheader("Personal Information")
     personal_info = re.findall(r'(Name|Email|Phone):\s*(.*)', resume_text)
     if personal_info:
@@ -289,7 +282,7 @@ if uploaded_file:
     else:
         st.write("No personal information found.")
 
-    # Display keyword highlighting
+    
     st.subheader("Keyword Highlighting")
     keywords = [
         "python", "java", "c++", "html", "css", "javascript", "sql", "machine learning",
@@ -302,7 +295,7 @@ if uploaded_file:
     ]
     highlighted_text = resume_text
     for keyword in keywords:
-        highlighted_text = re.sub(r'\b' + re.escape(keyword) + r'\b', f"*{keyword}*", highlighted_text, flags=re.IGNORECASE)
+        highlighted_text = re.sub(r'\b' + re.escape(keyword) + r'\b', f"{keyword}", highlighted_text, flags=re.IGNORECASE)
     st.markdown(highlighted_text)
 
     st.write("Generating SWOT Analysis...")
@@ -311,20 +304,20 @@ if uploaded_file:
         if swot_sections:
             display_swot_analysis(swot_sections)
 
-    # Display sentiment analysis
+    
     st.subheader("Sentiment Analysis")
     analysis = TextBlob(resume_text)
     sentiment = analysis.sentiment
     st.write(f"Polarity: {sentiment.polarity}, Subjectivity: {sentiment.subjectivity}")
 
-    # Display grammar and spell check
+    
     st.subheader("Grammar and Spell Check")
     words = resume_text.split()
     corrected_words = [str(Word(word).correct()) for word in words]
     corrected_text = ' '.join(corrected_words)
     st.text_area("Corrected Resume", corrected_text, height=300)
 
-    # Display personality traits analysis (basic example)
+    
     st.subheader("Personality Traits Analysis")
     personality_traits = {
         "Leadership": ["leadership", "management", "team"],
@@ -336,18 +329,18 @@ if uploaded_file:
     for trait, found in traits_found.items():
         st.write(f"{trait}: {'Found' if found else 'Not Found'}")
 
-    # Visualization Dashboard
+    
     st.subheader("Visualization Dashboard")
     st.write("This section provides a visual overview of the resume analysis.")
 
-    # Skill Distribution Pie Chart
+    
     st.subheader("Skill Distribution")
     plt.figure(figsize=(8, 8))
     plt.pie(skill_counts, labels=skill_names, autopct='%1.1f%%', startangle=140)
     plt.title("Skill Distribution")
     st.pyplot(plt)
 
-    # Experience Timeline (basic example)
+    
     st.subheader("Experience Timeline")
     experience_timeline = re.findall(r'(\d+)\s*(year|yrs|years)\s*at\s*(.*)', resume_text.lower())
     if experience_timeline:
