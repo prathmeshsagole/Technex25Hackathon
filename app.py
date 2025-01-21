@@ -38,6 +38,9 @@ def extract_text_from_docx(docx_file):
 def analyze_resume(text):
     words = re.findall(r'\b\w+\b', text.lower())
     filtered_words = [word for word in words if word not in stop_words]
+    
+
+
 
     
     skills_list = [
@@ -153,6 +156,22 @@ def perform_swot_analysis(text):
         r'managed',
         r'developed'
     ]
+    
+    weakness_indicators = [
+        r'basic knowledge',
+        r'familiar with',
+        r'learning',
+        r'limited experience',
+        r'need to improve'
+    ]
+
+    opportunity_indicators = [
+        r'goals',
+        r'aim',
+        r'aspire',
+        r'seeking',
+        r'interested in'
+    ]
 
     
     for sentence in sentences:
@@ -228,7 +247,7 @@ def display_swot_analysis(sections):
             st.markdown("</div>", unsafe_allow_html=True)
 
 
-st.title("AI-Based Resume Analyzer")
+st.title("ResuMind- An AI-Based Resume Analyzer")
 st.write("Upload a resume (PDF or DOCX) to analyze the candidate's skills and experience.")
 
 uploaded_file = st.file_uploader("Choose a file", type=["pdf", "docx"])
@@ -251,7 +270,7 @@ if uploaded_file:
     skill_names = list(skills.keys())
     skill_counts = list(skills.values())
 
-    
+
     st.subheader("Total Experience")
     st.write(f"{experience} years of experience")
 

@@ -61,9 +61,7 @@ The AI-Based Resume Analyzer is an innovative tool designed to analyze resumes u
 ```
 |-- ai-resume-analyzer
     |-- app.py                # Main application file
-    |-- templates/            # Streamlit templates (if any custom HTML used)
-    |-- static/               # CSS and JavaScript files
-    |-- models/               # Pre-trained NLP models
+
     |-- requirements.txt      # Required dependencies
     |-- README.md             # Project documentation
 ```

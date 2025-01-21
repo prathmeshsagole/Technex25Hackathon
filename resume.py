@@ -71,18 +71,44 @@ def analyze_resume(text):
 
     return ranked_skills, total_experience
 
-# Function to extract education details (very basic pattern recognition)
-def extract_education_details(text):
-    education_keywords = ["bachelor", "master", "degree", "university", "college", "phd", "engineering", "science"]
-    education_details = []
-    for line in text.splitlines():
-        if any(keyword in line.lower() for keyword in education_keywords):
-            education_details.append(line.strip())
-    return education_details
 
-# Function to determine suitable job positions based on skills
-def suggest_job_positions(skills):
-    job_positions = {
+#  st.subheader("Grammar and Spell Check")
+#     try:
+#         # Create TextBlob object
+#         blob = TextBlob(resume_text)
+        
+#         # Perform spell check on words
+#         corrected_words = []
+#         for word in resume_text.split():
+#             # Create a TextBlob for each word
+#             word_blob = TextBlob(word)
+#             # Get the correction
+#             corrected = str(word_blob.correct())
+#             corrected_words.append(corrected)
+        
+#         corrected_text = ' '.join(corrected_words)
+        
+#         col1, col2 = st.columns(2)
+        
+#         with col1:
+#             st.markdown("**Original Text**")
+#             st.text_area("", resume_text, height=300, disabled=True)
+            
+#         with col2:
+#             st.markdown("**Corrected Text**")
+#             st.text_area("", corrected_text, height=300, disabled=True)
+
+    def extract_education_details(text):
+        education_keywords = ["bachelor", "master", "degree", "university", "college", "phd", "engineering", "science"]
+        
+        education_details = []
+        for line in text.splitlines():
+         if any(keyword in line.lower() for keyword in education_keywords):
+            education_details.append(line.strip())
+        return education_details
+
+    def suggest_job_positions(skills):
+        job_positions = {
         "Data Scientist": ["python", "machine learning", "data science", "tensorflow", "analytics", "statistics"],
         "Machine Learning Engineer": ["python", "machine learning", "tensorflow", "data science", "algorithm design"],
         "Software Developer": ["python", "java", "c++", "html", "css", "javascript", "software development", "mongodb", "php"],
@@ -303,37 +329,37 @@ def display_swot_analysis(sections):
           st.error("Unable to generate SWOT analysis")
         return
         
-        st.subheader("AI-Generated SWOT Analysis")
+st.subheader("AI-Generated SWOT Analysis")
     
     # Create two columns for the SWOT analysis
-        col1, col2 = st.columns(2)
+col1, col2 = st.columns(2)
     
-        with col1:
+with col1:
         # Strengths (Green)
         st.markdown("### 💪 Strengths")
-        st.markdown("""
-        <div style='background-color: #e6ffe6; padding: 15px; border-radius: 5px;'>
-        """, unsafe_allow_html=True)
-        for strength in sections['Strengths']:
+st.markdown("""
+         <div style='background-color: #e6ffe6; padding: 15px; border-radius: 5px;'>
+         """, unsafe_allow_html=True)
+for strength in sections['Strengths']:
             st.markdown(f"• {strength}")
-        st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
         
         # Opportunities (Blue)
-        st.markdown("### 🎯 Opportunities")
-        st.markdown("""
+st.markdown("### 🎯 Opportunities")
+st.markdown("""
         <div style='background-color: #e6f3ff; padding: 15px; border-radius: 5px;'>
         """, unsafe_allow_html=True)
-        for opportunity in sections['Opportunities']:
+for opportunity in sections['Opportunities']:
             st.markdown(f"• {opportunity}")
         st.markdown("</div>", unsafe_allow_html=True)
     
-    with col2:
+        with col2:
         # Weaknesses (Yellow)
-        st.markdown("### ⚠️ Weaknesses")
-        st.markdown("""
-        <div style='background-color: #fff3e6; padding: 15px; border-radius: 5px;'>
+         st.markdown("### ⚠️ Weaknesses")
+         st.markdown("""
+         <div style='background-color: #fff3e6; padding: 15px; border-radius: 5px;'>
         """, unsafe_allow_html=True)
-        for weakness in sections['Weaknesses']:
+         for weakness in sections['Weaknesses']:
             st.markdown(f"• {weakness}")
         st.markdown("</div>", unsafe_allow_html=True)
         
@@ -427,6 +453,29 @@ if uploaded_file:
     corrected_words = [str(Word(word)).correct() for word in words]
     corrected_text = ' '.join(corrected_words)
     st.text_area("Corrected Resume", corrected_text, height=300)
+    
+    
+    if corrected_text != resume_text:
+            st.markdown("**Corrections Made:**")
+            original_words = resume_text.split()
+            corrected_words = corrected_text.split()
+            
+            changes = []
+            for orig, corr in zip(original_words, corrected_words):
+                if orig != corr:
+                    changes.append(f"'{orig}' → '{corr}'")
+            
+            if changes:
+                for change in changes:
+                    st.write(f"- {change}")
+            else:
+                st.write("No spelling errors found.")
+                
+        
+    st.error(f"Error during spell check: {str(e)}")
+    st.write("Spell check functionality is currently unavailable. Displaying original text:")
+    st.text_area("Original Text", resume_text, height=300)
+        
 
     # Display personality traits analysis (basic example)
     st.subheader("Personality Traits Analysis")
